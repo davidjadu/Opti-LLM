@@ -1,2 +1,2 @@
-# Opti-LLM
-Using LLM's for optimization problems.
+# LLM-opti
+Assessing the use of LLM's for optimisation problems. 
