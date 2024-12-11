@@ -1,0 +1,6 @@
+services:
+  ollama:
+    build: .
+    container_name: ollama-instance
+    ports:
+      - "11434:11434"
