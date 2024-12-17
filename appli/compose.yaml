@@ -1,0 +1,16 @@
+services:
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'pass'
+      MYSQL_ROOT_PASSWORD: 'pass'
+    ports:
+      - '9091:3306'
+  ollama:
+    image: ollama/ollama
+    ports:
+      - 11434:11434
+      # Where our data will be persisted
