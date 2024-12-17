@@ -14,7 +14,7 @@ public class GraphDatasetElement {
     private String pointB;
     private Float distance;
     @ManyToOne
-    @JsonIgnore
+    @JoinColumn(name = "data_set_id")
     private DataSet dataSet;
 
     public String toString(){

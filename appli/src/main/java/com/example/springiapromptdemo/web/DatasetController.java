@@ -37,7 +37,7 @@ public class DatasetController {
                 System.out.println("File empty");
             }
             //Path destination = Paths.get("rootDir").resolve(file.getOriginalFilename()).normalize().toAbsolutePath();
-            Path destination = Paths.get("C:\\workdir\\SpringAIDemo-master\\src\\main\\resources\\"+file.getOriginalFilename());
+            Path destination = Paths.get("C:\\workdir\\"+file.getOriginalFilename());
           Files.copy(file.getInputStream(), destination,StandardCopyOption.REPLACE_EXISTING);
             dataSetService.loadDataset(datasetId,destination.toFile());
         } catch (IOException e) {

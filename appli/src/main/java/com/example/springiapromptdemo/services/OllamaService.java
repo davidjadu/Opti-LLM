@@ -57,7 +57,6 @@ public class OllamaService {
         LLMPrompt savedPrompts = promptService.getOnePrompt(promptId);
         StringBuffer contextText=new StringBuffer();
         contextText.append("Tu effectuera la tache demandé en tenant compte uniquement des informations fournis ci-dessous:");
-
         dataSetService.getDatasetElements(datasetId).forEach(graphDatasetElement -> {
             contextText.append(graphDatasetElement.toString());
         });
