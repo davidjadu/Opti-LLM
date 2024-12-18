@@ -13,6 +13,7 @@ public class LLMResponse {
     private Long id;
     @ManyToOne
     private LLMPrompt prompt;
+    @OneToOne
     private DataSet dataSet;
     private Float score;
     @Temporal(TemporalType.TIMESTAMP)
