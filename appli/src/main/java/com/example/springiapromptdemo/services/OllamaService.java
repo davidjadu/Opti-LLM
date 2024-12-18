@@ -24,19 +24,23 @@ import java.util.Map;
 @Slf4j
 public class OllamaService {
 
-    @Autowired
     OllamaChatModel ollamaChatModel;
 
-    @Autowired PromptService promptService;
+     PromptService promptService;
 
-    @Autowired DataSetService dataSetService;
+    DataSetService dataSetService;
 
-    @Autowired
     LLMResponseService llmResponseService;
 
-    @Autowired
     GraphService graphService;
 
+    public OllamaService(OllamaChatModel ollamaChatModel, PromptService promptService, DataSetService dataSetService, LLMResponseService llmResponseService, GraphService graphService) {
+        this.ollamaChatModel = ollamaChatModel;
+        this.promptService = promptService;
+        this.dataSetService = dataSetService;
+        this.llmResponseService = llmResponseService;
+        this.graphService = graphService;
+    }
 
     /**
      * Cette methode permet d'appeler Ollama
