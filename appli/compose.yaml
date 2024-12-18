@@ -3,7 +3,7 @@ services:
   db:
     image: mysql:5.7
     environment:
-      MYSQL_DATABASE: 'db'
+      MYSQL_DATABASE: 'graphdataset'
       MYSQL_USER: 'user'
       MYSQL_PASSWORD: 'pass'
       MYSQL_ROOT_PASSWORD: 'pass'

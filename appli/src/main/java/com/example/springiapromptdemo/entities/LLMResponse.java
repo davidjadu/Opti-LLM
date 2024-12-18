@@ -11,10 +11,13 @@ public class LLMResponse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    private LLMPrompt prompt;
+    private String systemPromt;
+    private String userData;
+    @OneToOne(cascade = CascadeType.DETACH)
     private DataSet dataSet;
-    private Float score;
+    private Double expectedDistance;
+    private Double providedDistance;
+    private Double score;
     @Temporal(TemporalType.TIMESTAMP)
     private Date executionDate;
 }

@@ -20,17 +20,7 @@ public class OpenIARestController {
     @Autowired
     OllamaService ollamaService;
 
-    @GetMapping
-    public String callOllama(){
-        return ollamaService.callOllama();
 
-    }
-
-    @GetMapping("/{promptId}")
-    public String callOllama(@PathVariable Long promptId){
-        return ollamaService.callOllama(promptId);
-
-    }
 
     @GetMapping("/{promptId}/{datasetId}")
     public String callOllama(@PathVariable Long promptId,@PathVariable Long datasetId){

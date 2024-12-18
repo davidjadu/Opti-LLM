@@ -1,0 +1,6 @@
+FROM ollama:ollama:latest
+RUN apt-get update
+CMD ["apt", "apt-get", "install","-Y", "python3"]
+CMD ["apt", "apt-get", "install","-Y", "python3-pip"]
+CMD ["pip", "pip", "install", "-U","-Y" ,"huggingface_hub[cli]"]
+CMD ["pip", "pip", "install","-Y", "mlx-lm"]

@@ -21,7 +21,4 @@ public class LLMResponseService {
         return llmResponseRepository.getReferenceById(id);
     }
 
-    public Page<LLMResponse> getLLMResponseByPrompt(Long promptId,Integer page,Integer size){
-       return llmResponseRepository.getLLMResponsesByPrompt(promptId, PageRequest.of(page,size));
-    }
 }

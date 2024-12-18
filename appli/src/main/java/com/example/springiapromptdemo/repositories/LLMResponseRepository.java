@@ -10,6 +10,4 @@ import java.util.List;
 
 public interface LLMResponseRepository extends JpaRepository<LLMResponse,Long> {
 
-    @Query("SELECT L from LLMResponse L where L.prompt.id = ?1")
-    Page<LLMResponse> getLLMResponsesByPrompt(Long promptId, Pageable pageable);
 }
