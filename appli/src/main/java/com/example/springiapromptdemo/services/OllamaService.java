@@ -26,7 +26,7 @@ public class OllamaService {
 
     OllamaChatModel ollamaChatModel;
 
-     PromptService promptService;
+    PromptService promptService;
 
     DataSetService dataSetService;
 
@@ -103,7 +103,7 @@ public class OllamaService {
     }
 
     /**
-     * Cette methode permet de sauvegarder la reponse de l'utilisateur
+     * Cette methode permet de sauvegarder la reponse de Ollama
      * @param response
      * @param dataSet
      * @param savedPrompts
