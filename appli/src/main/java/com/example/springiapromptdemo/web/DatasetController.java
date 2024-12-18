@@ -22,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/dataset")
 public class DatasetController {
+
     @Autowired
     DataSetService dataSetService;
     @PostMapping
@@ -29,21 +30,41 @@ public class DatasetController {
         dataSetService.createDataSet(dataSet);
     }
 
-    @PostMapping(value = "/{datasetId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public void loadDataset(@PathVariable Long datasetId,@RequestParam(value = "file") MultipartFile file){
+
+    @PostMapping(value = "/{datasetId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void loadDataset(@PathVariable Long datasetId, @RequestParam(value = "files") List<MultipartFile> files) {
         System.out.println("testme");
         try {
-            if(file.isEmpty()) {
-                System.out.println("File empty");
+            if (files.isEmpty()) {
+                System.out.println("No files uploaded");
+            } else {
+                files.stream()
+                        .filter(file -> !file.isEmpty()) // Filtrer les fichiers non vides
+                        .forEach(file -> processFile(datasetId, file)); // Appliquer le traitement à chaque fichier
             }
-            //Path destination = Paths.get("rootDir").resolve(file.getOriginalFilename()).normalize().toAbsolutePath();
-            Path destination = Paths.get("C:\\workdir\\"+file.getOriginalFilename());
-          Files.copy(file.getInputStream(), destination,StandardCopyOption.REPLACE_EXISTING);
-            dataSetService.loadDataset(datasetId,destination.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error uploading files", e);
         }
+    }
 
+    // Méthode séparée pour traiter chaque fichier
+    private void processFile(Long datasetId, MultipartFile file) {
+        try {
+            // Définir le chemin de destination pour chaque fichier
+            Path destination = Paths.get("C:\\workdir\\SpringAIDemo-master\\src\\main\\resources\\" + file.getOriginalFilename());
+
+            // Copier le fichier dans le répertoire de destination
+            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            // Charger le fichier dans votre service
+            dataSetService.loadDataset(datasetId, destination.toFile());
+
+            System.out.println("File uploaded and processed: " + file.getOriginalFilename());
+
+        } catch (IOException e) {
+            // Vous pouvez aussi gérer des erreurs spécifiques à chaque fichier
+            System.err.println("Error processing file " + file.getOriginalFilename() + ": " + e.getMessage());
+        }
     }
 
     @GetMapping("/{datasetId}/{page}/{size}")
