@@ -24,24 +24,72 @@ import java.util.Map;
 @Slf4j
 public class OllamaService {
 
-    @Autowired
     OllamaChatModel ollamaChatModel;
 
-    @Autowired PromptService promptService;
+    PromptService promptService;
 
-    @Autowired DataSetService dataSetService;
+    DataSetService dataSetService;
 
-    @Autowired
     LLMResponseService llmResponseService;
 
-    @Autowired
     GraphService graphService;
 
+    public OllamaService(OllamaChatModel ollamaChatModel, PromptService promptService, DataSetService dataSetService, LLMResponseService llmResponseService, GraphService graphService) {
+        this.ollamaChatModel = ollamaChatModel;
+        this.promptService = promptService;
+        this.dataSetService = dataSetService;
+        this.llmResponseService = llmResponseService;
+        this.graphService = graphService;
+    }
 
+    /**
+     * Cette methode permet d'appeler Ollama
+     * @param promptId
+     * @param datasetId
+     * @return
+     */
     public String callOllama(Long promptId,Long datasetId){
+
+        log.trace("Recuperation des prompts et du dataset...");
         LLMPrompt savedPrompts = promptService.getOnePrompt(promptId);
         DataSet dataSet = dataSetService.getOneDataset(datasetId);
-        PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
+
+        log.trace("Augmentation du prompt systeme...");
+        String finalSystemPrompt = augmentSystemPrompt(datasetId, savedPrompts);
+
+        if (savedPrompts.getUserData() == null || finalSystemPrompt == null) {
+            throw new IllegalArgumentException("Data for prompts cannot be null");
+        }
+        log.trace("Construction des prompts systeme et utilisateur...");
+
+        PromptTemplate promptTemplate = new PromptTemplate(savedPrompts.getUserData());
+        Message message = promptTemplate.createMessage(Map.of("request", promptTemplate));
+
+        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(finalSystemPrompt);
+        Message systemMessage = new SystemMessage(finalSystemPrompt);
+
+        log.trace("Contruction du prompt principal...");
+        Prompt prompt = new Prompt(List.of(message, systemMessage));
+
+        log.trace("Appel de Ollama...");
+        ChatResponse chatResponse = ollamaChatModel.call(prompt);
+        String response = chatResponse.getResult().getOutput().getContent();
+
+        log.trace("Sauvegarde de la reponse...");
+        saveResponse(response,dataSet,savedPrompts);
+
+        return response;
+    }
+
+    /**
+     * Cette methode permet d'ajouter des informations contextuelles au prompt systeme
+     *  - Les informations contextuelles sont les elements du dataset
+     *  - ET des indications sur la tache à effectuer
+     * @param datasetId
+     * @param savedPrompts
+     * @return
+     */
+    private String augmentSystemPrompt(Long datasetId, LLMPrompt savedPrompts) {
         StringBuffer contextText=new StringBuffer();
         contextText.append("""
         Tu effectuera la tache demandé en tenant compte uniquement des informations fournis ci-dessous:
@@ -50,24 +98,17 @@ public class OllamaService {
             contextText.append(graphDatasetElement.toString());
         });
 
-       String finalSystemPrompt=savedPrompts.getSystemPrompt().concat(contextText.toString());
+        String finalSystemPrompt= savedPrompts.getSystemPrompt().concat(contextText.toString());
+        return finalSystemPrompt;
+    }
 
-// Ensure that data is not null
-        if (savedPrompts.getUserData() == null || finalSystemPrompt == null) {
-            throw new IllegalArgumentException("Data for prompts cannot be null");
-        }
-
-        PromptTemplate promptTemplate = new PromptTemplate(savedPrompts.getUserData());
-        Message message = promptTemplate.createMessage(Map.of("request", promptTemplate));
-
-        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(finalSystemPrompt);
-        Message systemMessage = new SystemMessage(finalSystemPrompt);
-
-        Prompt prompt = new Prompt(List.of(message, systemMessage));
-
-        ChatResponse chatResponse = ollamaChatModel.call(prompt);
-        System.out.println("chatResponse = " + chatResponse);
-        String response = chatResponse.getResult().getOutput().getContent();
+    /**
+     * Cette methode permet de sauvegarder la reponse de Ollama
+     * @param response
+     * @param dataSet
+     * @param savedPrompts
+     */
+    private void saveResponse(String response, DataSet dataSet, LLMPrompt savedPrompts) {
         Double distance = getDataFromResponse(response);
 
         LLMResponse llmResponse = new LLMResponse();
@@ -75,15 +116,28 @@ public class OllamaService {
         llmResponse.setSystemPromt(savedPrompts.getSystemPrompt());
         llmResponse.setUserData(savedPrompts.getUserData());
         llmResponse.setProvidedDistance(distance);
-        llmResponse.setExpectedDistance(shortestPath.getTotalDistance());
+        //llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
         llmResponse.setExecutionDate(new Date());
-        llmResponseService.addLLMResponse(llmResponse);
-        return response;
+        //     llmResponseService.addLLMResponse(llmResponse);
     }
 
-    private Double getExpectedDistance(DataSet dataSet){
-        return 100.0; //TODO: Implement this method
+    /**
+     * Cette methode permet de calculer la distance attendue
+     * @param dataSet
+     * @param savedPrompts
+     * @return
+     */
+    private Double getExpectedDistance(DataSet dataSet, LLMPrompt savedPrompts) {
+        PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
+        return shortestPath.getTotalDistance();
     }
+    
+
+    /**
+     * Cette methode permet de recuperer la distance fournie par Ollama
+     * @param response
+     * @return
+     */
     private Double getDataFromResponse(String response){
         String jsonPath="$.total_distance";
         Double val = 0.0;
