@@ -20,8 +20,8 @@ public class LLMPrompt {
     @OneToMany
     @Lazy
     private List<LLMResponse> llmResponseList;
-    private Double start;
-    private Double end;
+    private Integer start;
+    private Integer end;
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateCreation;
 

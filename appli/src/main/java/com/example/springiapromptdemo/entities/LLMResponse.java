@@ -13,7 +13,7 @@ public class LLMResponse {
     private Long id;
     private String systemPromt;
     private String userData;
-    @OneToOne(cascade = CascadeType.DETACH)
+    @ManyToOne(cascade = CascadeType.REFRESH)
     private DataSet dataSet;
     private Double expectedDistance;
     private Double providedDistance;

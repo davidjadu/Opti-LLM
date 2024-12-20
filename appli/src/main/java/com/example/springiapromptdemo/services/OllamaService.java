@@ -24,17 +24,22 @@ import java.util.Map;
 @Slf4j
 public class OllamaService {
 
-    OllamaChatModel ollamaChatModel;
+    private final OllamaChatModel ollamaChatModel;
 
-    PromptService promptService;
+    private final PromptService promptService;
 
-    DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    LLMResponseService llmResponseService;
+    private final LLMResponseService llmResponseService;
 
-    GraphService graphService;
+    private final GraphService graphService;
 
-    public OllamaService(OllamaChatModel ollamaChatModel, PromptService promptService, DataSetService dataSetService, LLMResponseService llmResponseService, GraphService graphService) {
+    public OllamaService(OllamaChatModel ollamaChatModel,
+                         PromptService promptService,
+                         DataSetService dataSetService,
+                         LLMResponseService llmResponseService,
+                         GraphService graphService)
+    {
         this.ollamaChatModel = ollamaChatModel;
         this.promptService = promptService;
         this.dataSetService = dataSetService;
@@ -60,12 +65,12 @@ public class OllamaService {
         if (savedPrompts.getUserData() == null || finalSystemPrompt == null) {
             throw new IllegalArgumentException("Data for prompts cannot be null");
         }
+
         log.trace("Construction des prompts systeme et utilisateur...");
 
         PromptTemplate promptTemplate = new PromptTemplate(savedPrompts.getUserData());
         Message message = promptTemplate.createMessage(Map.of("request", promptTemplate));
 
-        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(finalSystemPrompt);
         Message systemMessage = new SystemMessage(finalSystemPrompt);
 
         log.trace("Contruction du prompt principal...");
@@ -116,9 +121,10 @@ public class OllamaService {
         llmResponse.setSystemPromt(savedPrompts.getSystemPrompt());
         llmResponse.setUserData(savedPrompts.getUserData());
         llmResponse.setProvidedDistance(distance);
-        //llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
+        llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts)); //Todo: Regarder avec Reda pourquoi il me dit que le noeud n'existe pas
+        llmResponse.setScore(llmResponse.getExpectedDistance() - llmResponse.getProvidedDistance());
         llmResponse.setExecutionDate(new Date());
-        //     llmResponseService.addLLMResponse(llmResponse);
+        llmResponseService.addLLMResponse(llmResponse);
     }
 
     /**
@@ -138,13 +144,21 @@ public class OllamaService {
      * @param response
      * @return
      */
-    private Double getDataFromResponse(String response){
+    private Double getDataFromResponse(String response) {
         String jsonPath="$.total_distance";
         Double val = 0.0;
         try {
              val = JsonPath.read(response, jsonPath);
         } catch (Exception e) {
-            log.error("Invalid response from Ollama");
+            log.error("""
+        *********************************************************
+        ERROR Invalid response from Ollama ....
+        *********************************************************
+        """);
+            log.error(response);
+            log.error("""
+        *********************************************************
+        """);
         }
         return val;
     }
