@@ -26,11 +26,43 @@ public class DatasetController {
 
     @Autowired
     DataSetService dataSetService;
+
+    private static final String DIRECTORY_PATH = "C:\\path\\to\\your\\folder";  // Chemin du répertoire contenant les fichiers
+
     @PostMapping
     public void createDataset(@RequestBody DataSet dataSet){
         dataSetService.createDataSet(dataSet);
     }
 
+    public void loadDataset(@PathVariable Long datasetId) {
+        // Créer un objet File pour le répertoire contenant les fichiers
+        File folder = new File(DIRECTORY_PATH);
+
+        // Vérifiez si le dossier existe et est valide
+        if (!folder.exists() || !folder.isDirectory()) {
+            log.warn("Le répertoire spécifié n'existe pas ou ce n'est pas un dossier valide");
+            return;
+        }
+
+        // Liste des fichiers dans le répertoire
+        File[] files = folder.listFiles();
+
+        if (files == null || files.length == 0) {
+            log.warn("Aucun fichier trouvé dans le répertoire");
+        } else {
+            // Parcourez chaque fichier et traitez-le
+            for (File file : files) {
+                if (file.isFile()) {  // Vérifiez qu'il s'agit bien d'un fichier, pas d'un répertoire
+                    try {
+                        // Traitez le fichier directement, pas besoin de MultipartFile
+                        dataSetService.loadDataset(datasetId, file);  // Appel de la méthode existante
+                    } catch (Exception e) {
+                        log.error("Erreur lors du traitement du fichier: {}", file.getName(), e);
+                    }
+                }
+            }
+        }
+    }
 
     @PostMapping(value = "/{datasetId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public void loadDataset(@PathVariable Long datasetId, @RequestParam(value = "files") List<MultipartFile> files) {
