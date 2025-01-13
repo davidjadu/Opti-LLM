@@ -17,8 +17,5 @@ public class PathResult {
 
     private double totalDistance; // Distance totale
 
-    @JsonIgnore
-    @ManyToOne
-   // @JoinColumn(name = "dataSet_id")
-    private DataSet dataSet; // Association avec DataSet
+    private String graph_name;
 }

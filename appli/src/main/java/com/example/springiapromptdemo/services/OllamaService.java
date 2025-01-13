@@ -1,9 +1,6 @@
 package com.example.springiapromptdemo.services;
 
-import com.example.springiapromptdemo.entities.DataSet;
-import com.example.springiapromptdemo.entities.LLMPrompt;
-import com.example.springiapromptdemo.entities.LLMResponse;
-import com.example.springiapromptdemo.entities.PathResult;
+import com.example.springiapromptdemo.entities.*;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
@@ -49,39 +46,32 @@ public class OllamaService {
 
     /**
      * Cette methode permet d'appeler Ollama
-     * @param promptId
-     * @param datasetId
+     * @param promptString
+     * @param graph
      * @return
      */
-    public String callOllama(Long promptId,Long datasetId){
-
-        log.trace("Recuperation des prompts et du dataset...");
-        LLMPrompt savedPrompts = promptService.getOnePrompt(promptId);
-        DataSet dataSet = dataSetService.getOneDataset(datasetId);
+    public String callOllama(String promptString, List<GraphDatasetElement> graph){
 
         log.trace("Augmentation du prompt systeme...");
-        String finalSystemPrompt = augmentSystemPrompt(datasetId, savedPrompts);
-
-        if (savedPrompts.getUserData() == null || finalSystemPrompt == null) {
-            throw new IllegalArgumentException("Data for prompts cannot be null");
-        }
+        String finalSystemPrompt = augmentSystemPrompt(graph, promptString);
 
         log.trace("Construction des prompts systeme et utilisateur...");
 
+        /*
         PromptTemplate promptTemplate = new PromptTemplate(savedPrompts.getUserData());
         Message message = promptTemplate.createMessage(Map.of("request", promptTemplate));
-
+*/
         Message systemMessage = new SystemMessage(finalSystemPrompt);
 
         log.trace("Contruction du prompt principal...");
-        Prompt prompt = new Prompt(List.of(message, systemMessage));
+        Prompt prompt = new Prompt(List.of(systemMessage));
 
         log.trace("Appel de Ollama...");
         ChatResponse chatResponse = ollamaChatModel.call(prompt);
         String response = chatResponse.getResult().getOutput().getContent();
 
         log.trace("Sauvegarde de la reponse...");
-        saveResponse(response,dataSet,savedPrompts);
+     //   saveResponse(response,dataSet,savedPrompts);
 
         return response;
     }
@@ -90,20 +80,20 @@ public class OllamaService {
      * Cette methode permet d'ajouter des informations contextuelles au prompt systeme
      *  - Les informations contextuelles sont les elements du dataset
      *  - ET des indications sur la tache à effectuer
-     * @param datasetId
-     * @param savedPrompts
+     * @param graph
+     * @param prompt
      * @return
      */
-    private String augmentSystemPrompt(Long datasetId, LLMPrompt savedPrompts) {
+    private String augmentSystemPrompt(List<GraphDatasetElement> graph, String prompt) {
         StringBuffer contextText=new StringBuffer();
         contextText.append("""
         Tu effectuera la tache demandé en tenant compte uniquement des informations fournis ci-dessous:
         """);
-        dataSetService.getDatasetElements(datasetId).forEach(graphDatasetElement -> {
+        graph.forEach(graphDatasetElement -> {
             contextText.append(graphDatasetElement.toString());
         });
 
-        String finalSystemPrompt= savedPrompts.getSystemPrompt().concat(contextText.toString());
+        String finalSystemPrompt= prompt.concat(contextText.toString());
         return finalSystemPrompt;
     }
 
@@ -113,6 +103,7 @@ public class OllamaService {
      * @param dataSet
      * @param savedPrompts
      */
+    //Todo: sauvegarder la réponse dans un fichier csv .
     private void saveResponse(String response, DataSet dataSet, LLMPrompt savedPrompts) {
         Double distance = getDataFromResponse(response);
 
@@ -121,7 +112,7 @@ public class OllamaService {
         llmResponse.setSystemPromt(savedPrompts.getSystemPrompt());
         llmResponse.setUserData(savedPrompts.getUserData());
         llmResponse.setProvidedDistance(distance);
-        llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts)); //Todo: Regarder avec Reda pourquoi il me dit que le noeud n'existe pas
+        llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
         llmResponse.setScore(llmResponse.getExpectedDistance() - llmResponse.getProvidedDistance());
         llmResponse.setExecutionDate(new Date());
         llmResponseService.addLLMResponse(llmResponse);
@@ -133,6 +124,7 @@ public class OllamaService {
      * @param savedPrompts
      * @return
      */
+    //Todo: changer cette methode pour lire la réponse du fichier response.csv
     private Double getExpectedDistance(DataSet dataSet, LLMPrompt savedPrompts) {
         PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
         return shortestPath.getTotalDistance();
@@ -146,6 +138,8 @@ public class OllamaService {
      */
     private Double getDataFromResponse(String response) {
         String jsonPath="$.total_distance";
+     // List<String>  pathresult= JsonPath.read(response, "$.shortest_path");
+
         Double val = 0.0;
         try {
              val = JsonPath.read(response, jsonPath);

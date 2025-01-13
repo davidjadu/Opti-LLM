@@ -13,9 +13,8 @@ public class GraphDatasetElement {
     private String pointA;
     private String pointB;
     private Float distance;
-    @ManyToOne
-    @JoinColumn(name = "data_set_id")
-    private DataSet dataSet;
+
+    private String grapheName;
 
     public String toString(){
         return "  + Le noeud "+pointA+"est lié au noeud "+pointB+"la distance entre eux est de "+distance+".";
