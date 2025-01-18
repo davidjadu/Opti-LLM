@@ -23,25 +23,12 @@ public class OllamaService {
 
     private final OllamaChatModel ollamaChatModel;
 
-    private final PromptService promptService;
 
-    private final DataSetService dataSetService;
 
-    private final LLMResponseService llmResponseService;
 
-    private final GraphService graphService;
-
-    public OllamaService(OllamaChatModel ollamaChatModel,
-                         PromptService promptService,
-                         DataSetService dataSetService,
-                         LLMResponseService llmResponseService,
-                         GraphService graphService)
+    public OllamaService(OllamaChatModel ollamaChatModel)
     {
         this.ollamaChatModel = ollamaChatModel;
-        this.promptService = promptService;
-        this.dataSetService = dataSetService;
-        this.llmResponseService = llmResponseService;
-        this.graphService = graphService;
     }
 
     /**
@@ -112,10 +99,9 @@ public class OllamaService {
         llmResponse.setSystemPromt(savedPrompts.getSystemPrompt());
         llmResponse.setUserData(savedPrompts.getUserData());
         llmResponse.setProvidedDistance(distance);
-        llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
+      //  llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
         llmResponse.setScore(llmResponse.getExpectedDistance() - llmResponse.getProvidedDistance());
         llmResponse.setExecutionDate(new Date());
-        llmResponseService.addLLMResponse(llmResponse);
     }
 
     /**
@@ -126,8 +112,8 @@ public class OllamaService {
      */
     //Todo: changer cette methode pour lire la réponse du fichier response.csv
     private Double getExpectedDistance(DataSet dataSet, LLMPrompt savedPrompts) {
-        PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
-        return shortestPath.getTotalDistance();
+     //   PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
+        return null;
     }
     
 

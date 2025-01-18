@@ -40,6 +40,7 @@ public class OpenIARestController {
 
     }
 
+    //Todo: deplacer dans le service
     private List<PathResult> readMetadata(){
         List<PathResult> pathResults = new ArrayList<>();
 
@@ -54,11 +55,20 @@ public class OpenIARestController {
             for (CSVRecord record : records) {
                 String graphId = record.get(0);
                 if(graphId.equals("graph_id")) {continue;}  // Si c'est un header ignorer la ligne
-                String digistrapah = record.get(4);
-                String distance = record.get(6);
+                String digistrapahString = record.get(4);
+                String distance = record.get(1);
+
+                digistrapahString=digistrapahString.substring(1, digistrapahString.length());
+               String[] trim=digistrapahString.split(",");
+               //convert digistrapahString to List of Strings
+               List<String> digistrapah = new ArrayList<>();
+               for (String s:trim) {
+                   digistrapah.add(s);
+               }
 
                 PathResult pathResult = new PathResult();
                 pathResult.setGraph_name("graph_"+graphId);
+                pathResult.setShortestPath(digistrapah);
 
                pathResults.add(pathResult);
 

@@ -14,7 +14,7 @@ List<ResultPath> resultat=new ArrayList<ResultPath>();
     for(ResultPath result:resultpath){
         List<GraphDataSetElement> graph=  readGraph(resultpath.getGraphId());
      Result result=   callOllama(graph,prompt); 
-    Double score= resultPath.TotalDistance-=result.TotalDistance;
+    Double score= resultPath.TotalDistance-result.TotalDistance;
     reslutpath.setScore(score);
     resultat.setPrompt(finalPrompt);
     resultat.add(resultpath);
