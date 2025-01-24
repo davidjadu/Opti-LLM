@@ -7,17 +7,17 @@ import org.springframework.context.annotation.Lazy;
 import java.util.Date;
 import java.util.List;
 
-@Entity
+
 @Data
 public class LLMPrompt {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(length=1500)
+
     private String systemPrompt;
-    @Column(length=1500)
+
     private String userData;
-    @OneToMany
+//    @OneToMany
     @Lazy
     private List<LLMResponse> llmResponseList;
     private Integer start;

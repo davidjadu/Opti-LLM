@@ -34,7 +34,7 @@ public class OpenIARestController {
         pathResults.stream().forEach(
                 pathResult -> {
                     List<GraphDatasetElement> graph = loadDataSet(pathResult.getGraph_name());
-                    ollamaService.callOllama(prompt, graph);
+                    ollamaService.callOllama(prompt, graph,pathResult);
                 }
         );
 
@@ -56,7 +56,7 @@ public class OpenIARestController {
                 String graphId = record.get(0);
                 if(graphId.equals("graph_id")) {continue;}  // Si c'est un header ignorer la ligne
                 String digistrapahString = record.get(4);
-                String distance = record.get(1);
+                String distance = record.get(5);
 
                 digistrapahString=digistrapahString.substring(1, digistrapahString.length());
                String[] trim=digistrapahString.split(",");
@@ -66,9 +66,11 @@ public class OpenIARestController {
                    digistrapah.add(s);
                }
 
-                PathResult pathResult = new PathResult();
-                pathResult.setGraph_name("graph_"+graphId);
-                pathResult.setShortestPath(digistrapah);
+                PathResult pathResult = PathResult.builder()
+                        .graph_name("graph_" + graphId)
+                        .shortestPath(digistrapah)
+                        .totalDistance(Double.parseDouble(distance))
+                        .build();
 
                pathResults.add(pathResult);
 
