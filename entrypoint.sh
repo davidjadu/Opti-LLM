@@ -7,7 +7,7 @@ ollama serve &
 sleep 5
 
 # Pull the required model
-ollama pull llama3
+ollama pull llama3.2
 
 # Keep the server running in the foreground
 wait
