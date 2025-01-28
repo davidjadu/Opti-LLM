@@ -1,6 +1,7 @@
 import heapq
 import csv
 import os
+from dotenv import load_dotenv
 
 class Explainer:
     def __init__(self, graph_id):
@@ -82,6 +83,7 @@ class Explainer:
                 explanation.append(f"The distance to nodes {', '.join(str(neighbor) for neighbor in not_updated)} is already lower through another path, so we don't update it.")
             # explanation.append("The queue is now: " + str(priority_queue))
         explanation.append("We ran out of nodes in the queue; hence, no path exists to the target node.")
+        explanation.append("FINAL ANSWER: No path found.")
         return explanation
 
 class Solution():
@@ -137,6 +139,7 @@ class Question():
         return question
 
 if __name__ == "__main__":
+    load_dotenv()
     question = Question(961)
     print(f"""Question: {Question(graph_id=72).get()}Solution: {Solution(graph_id=72).get()}
           \n\nQuestion: {Question(graph_id=70).get()}Solution: {Solution(graph_id=70).get()}

@@ -5,11 +5,12 @@ import requests
 from COT_genertaor import Question, Solution
 import random
 import csv
+from tqdm import tqdm
 
 CONTEXT_NUMBER = 100_000
 def chat_with_llama(prompt: str, system: str = ""):
 
-    url = F"{os.getenv("OLLAMA_URL")}/api/generate"
+    url = f"{os.getenv("OLLAMA_URL")}/api/generate"
     headers = {
         "Content-Type": "application/json"
     }
@@ -30,7 +31,7 @@ def chat_with_llama(prompt: str, system: str = ""):
         tokens = response_json['prompt_eval_count']
         return ans, tokens
     else:
-        return f"Error: {response.status_code}, {response.text}"
+        print(f"Error: {response.status_code}, {response.text}")
 
 def get_metadata():
     metadata_file_path = f"{os.getenv('PATH_TO_DATA')}/metadata.csv"
@@ -51,8 +52,25 @@ if __name__=="__main__":
     df = get_metadata()[:10]
     results = []
     error_counter = 0
+
     results_file_path = f"{os.getenv('PATH_TO_DATA')}/results/results_COT.csv"
-    for index, row in df.iterrows():
+    existing_results = []
+
+    try:
+        with open(results_file_path, mode='r', newline='', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+            for row in csv_reader:
+                existing_results.append(int(row['graph_id']))
+    except FileNotFoundError:
+        with open(results_file_path, mode='w', newline='', encoding='utf-8') as file:
+            fieldnames = ['graph_id', 'response', 'tokens']
+            csv_writer = csv.DictWriter(file, fieldnames=fieldnames)
+            csv_writer.writeheader()
+
+    for index, row in tqdm(df.iterrows(),total=10):
+        if row['graph_id'] in existing_results:
+            continue
+
         similar_graphs = random.sample(get_similar_graphs(row, df),2)
         prompt = ""
         for graph_id in similar_graphs:
@@ -60,7 +78,7 @@ if __name__=="__main__":
         prompt += f"Question: {Question(row['graph_id']).get()}"
 
         response, tokens = chat_with_llama(prompt)
-        results.append({'graph_id': graph_id, 'response': response, 'tokens': tokens})
+        results.append({'graph_id': row['graph_id'], 'response': response, 'tokens': tokens})
 
         if tokens >=CONTEXT_NUMBER:
             error_file_path = "errors.txt"
