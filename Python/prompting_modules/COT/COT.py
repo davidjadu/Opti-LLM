@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 from COT_genertaor import Question, Solution
 import random
+import csv
 
 CONTEXT_NUMBER = 100_000
 def chat_with_llama(prompt: str, system: str = ""):
