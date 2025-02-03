@@ -1,0 +1,4 @@
+graph_id,num_nodes,sigma,average edges,dijkstra path,dijkstra length,approximate_tsp,approximate_tsp_length
+"12,5,1,2,""[0, 1, 2, 4]"",120,""[0, 1, 2, 4, 2, 3, 2, 1, 0]"",244"
+"13,5,1,2,""[0, 1, 2, 3, 4]"",268,""[0, 1, 2, 3, 4, 3, 2, 1, 0]"",536"
+"14,5,1,2,""[0, 1, 2, 4]"",118,""[0, 1, 2, 4, 3, 4, 2, 1, 0]"",296"

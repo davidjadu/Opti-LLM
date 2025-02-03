@@ -1,34 +1,49 @@
 package com.example.springiapromptdemo.services;
 
-import com.example.springiapromptdemo.entities.*;
-import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.Date;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.stereotype.Service;
+
+import com.example.springiapromptdemo.entities.GraphDatasetElement;
+import com.example.springiapromptdemo.entities.LLMResponse;
+import com.example.springiapromptdemo.entities.PathResult;
+import com.example.springiapromptdemo.utils.OllamaUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class OllamaService {
+    
+    private final ChatClient chatClient;
 
-    private final OllamaChatModel ollamaChatModel;
-
-
-
-
-    public OllamaService(OllamaChatModel ollamaChatModel)
+    public OllamaService(ChatClient.Builder chatClient)
     {
-        this.ollamaChatModel = ollamaChatModel;
+        this.chatClient = chatClient.build();
+    }
+    
+    public List<LLMResponse> initChat(String userMeassage) {
+    	List<PathResult> pathResults = OllamaUtils.readMetadata();
+    	List<LLMResponse> resp = new ArrayList<>();
+        pathResults.stream().forEach(
+                pathResult -> {
+                    List<GraphDatasetElement> graph;
+					try {					
+						graph = OllamaUtils.loadDataSet(pathResult.getGraph_name());
+						LLMResponse res = this.callOllama(userMeassage, graph);
+						resp.add(res);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
+                }
+        );
+        return resp;
     }
 
     /**
@@ -37,30 +52,19 @@ public class OllamaService {
      * @param graph
      * @return
      */
-    public String callOllama(String promptString, List<GraphDatasetElement> graph){
-
-        log.trace("Augmentation du prompt systeme...");
-        String finalSystemPrompt = augmentSystemPrompt(graph, promptString);
+    private LLMResponse callOllama(String userMeassage, List<GraphDatasetElement> graph){
 
         log.trace("Construction des prompts systeme et utilisateur...");
-
-        /*
-        PromptTemplate promptTemplate = new PromptTemplate(savedPrompts.getUserData());
-        Message message = promptTemplate.createMessage(Map.of("request", promptTemplate));
-*/
-        Message systemMessage = new SystemMessage(finalSystemPrompt);
-
-        log.trace("Contruction du prompt principal...");
-        Prompt prompt = new Prompt(List.of(systemMessage));
+        Prompt prompt = augmentSystemPrompt(graph, userMeassage);
 
         log.trace("Appel de Ollama...");
-        ChatResponse chatResponse = ollamaChatModel.call(prompt);
-        String response = chatResponse.getResult().getOutput().getContent();
 
-        log.trace("Sauvegarde de la reponse...");
-     //   saveResponse(response,dataSet,savedPrompts);
+        //log.trace("Sauvegarde de la reponse...");
+        //saveResponse(response,dataSet,savedPrompts);
 
-        return response;
+        return this.chatClient.prompt(prompt)
+				.call()
+				.entity(LLMResponse.class);
     }
 
     /**
@@ -71,18 +75,23 @@ public class OllamaService {
      * @param prompt
      * @return
      */
-    private String augmentSystemPrompt(List<GraphDatasetElement> graph, String prompt) {
-        StringBuffer contextText=new StringBuffer();
-        contextText.append("""
-        Tu effectuera la tache demandé en tenant compte uniquement des informations fournis ci-dessous:
-        """);
-        graph.forEach(graphDatasetElement -> {
-            contextText.append(graphDatasetElement.toString());
-        });
+    private Prompt augmentSystemPrompt(List<GraphDatasetElement> graph, String userMeassage) {
+    	
+    	SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(
 
-        String finalSystemPrompt= prompt.concat(contextText.toString());
-        return finalSystemPrompt;
+    		"""
+				Considering only information provided by the graph: {graph} 
+				You will complete the task : {userMeassage}
+				Return the result of the shortest path with format: [0, 1, 2, 3] into shortestPath variable. 
+				The numbers 0, 1, 2, 3 represent the node numbers of the short path. Also calculate the total distance.	
+			"""
+		);
+		
+		return systemPromptTemplate.create(Map.of( "graph", graph, "userMeassage", userMeassage));
+		
     }
+    
+    
 
     /**
      * Cette methode permet de sauvegarder la reponse de Ollama
@@ -91,7 +100,7 @@ public class OllamaService {
      * @param savedPrompts
      */
     //Todo: sauvegarder la réponse dans un fichier csv .
-    private void saveResponse(String response, DataSet dataSet, LLMPrompt savedPrompts) {
+    /*private void saveResponse(String response, DataSet dataSet, LLMPrompt savedPrompts) {
         Double distance = getDataFromResponse(response);
 
         LLMResponse llmResponse = new LLMResponse();
@@ -99,10 +108,10 @@ public class OllamaService {
         llmResponse.setSystemPromt(savedPrompts.getSystemPrompt());
         llmResponse.setUserData(savedPrompts.getUserData());
         llmResponse.setProvidedDistance(distance);
-      //  llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
+      //llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
         llmResponse.setScore(llmResponse.getExpectedDistance() - llmResponse.getProvidedDistance());
         llmResponse.setExecutionDate(new Date());
-    }
+    }*/
 
     /**
      * Cette methode permet de calculer la distance attendue
@@ -111,35 +120,9 @@ public class OllamaService {
      * @return
      */
     //Todo: changer cette methode pour lire la réponse du fichier response.csv
-    private Double getExpectedDistance(DataSet dataSet, LLMPrompt savedPrompts) {
+    /*private Double getExpectedDistance(DataSet dataSet, LLMPrompt savedPrompts) {
      //   PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
         return null;
-    }
+    }*/
     
-
-    /**
-     * Cette methode permet de recuperer la distance fournie par Ollama
-     * @param response
-     * @return
-     */
-    private Double getDataFromResponse(String response) {
-        String jsonPath="$.total_distance";
-     // List<String>  pathresult= JsonPath.read(response, "$.shortest_path");
-
-        Double val = 0.0;
-        try {
-             val = JsonPath.read(response, jsonPath);
-        } catch (Exception e) {
-            log.error("""
-        *********************************************************
-        ERROR Invalid response from Ollama ....
-        *********************************************************
-        """);
-            log.error(response);
-            log.error("""
-        *********************************************************
-        """);
-        }
-        return val;
-    }
 }
