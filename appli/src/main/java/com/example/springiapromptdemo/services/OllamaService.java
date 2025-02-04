@@ -10,6 +10,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.stereotype.Service;
 
+import com.example.springiapromptdemo.entities.FinalResult;
 import com.example.springiapromptdemo.entities.GraphDatasetElement;
 import com.example.springiapromptdemo.entities.LLMResponse;
 import com.example.springiapromptdemo.entities.PathResult;
@@ -28,21 +29,39 @@ public class OllamaService {
         this.chatClient = chatClient.build();
     }
     
-    public List<LLMResponse> initChat(String userMeassage) {
+    public List<FinalResult> initChat(String userMeassage) {
     	List<PathResult> pathResults = OllamaUtils.readMetadata();
-    	List<LLMResponse> resp = new ArrayList<>();
+    	List<FinalResult> resp = new ArrayList<>();
         pathResults.stream().forEach(
                 pathResult -> {
                     List<GraphDatasetElement> graph;
 					try {					
 						graph = OllamaUtils.loadDataSet(pathResult.getGraph_name());
-						LLMResponse res = this.callOllama(userMeassage, graph);
-						resp.add(res);
+						LLMResponse res = this.callOllama(userMeassage, graph, pathResult.getNbNodes());
+						
+						//Double score = res.getTotalDistance() - pathResult.getTotalDistance();
+						
+						StringBuilder sortestPath = new StringBuilder();
+						for(String elem : pathResult.getShortestPath()) {
+							sortestPath.append(elem);
+						}
+						sortestPath = new StringBuilder(sortestPath.toString().strip());
+						
+						FinalResult finalResult = new FinalResult();
+        				finalResult.setGraph_name(pathResult.getGraph_name());
+        				finalResult.setExpectedShortestPath(sortestPath.toString());
+        				finalResult.setShortestPath(res.getShortestPath());
+        				finalResult.setExpectedTotalDistance(pathResult.getTotalDistance());
+        				//finalResult.setTotalDistance(res.getTotalDistance());
+        				//finalResult.setScore(score);
+        				
+						resp.add(finalResult);
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					}
                 }
         );
+		OllamaUtils.saveResponse(resp);
         return resp;
     }
 
@@ -52,10 +71,10 @@ public class OllamaService {
      * @param graph
      * @return
      */
-    private LLMResponse callOllama(String userMeassage, List<GraphDatasetElement> graph){
+    private LLMResponse callOllama(String userMeassage, List<GraphDatasetElement> graph, int nbNode){
 
         log.trace("Construction des prompts systeme et utilisateur...");
-        Prompt prompt = augmentSystemPrompt(graph, userMeassage);
+        Prompt prompt = augmentSystemPrompt(graph, userMeassage, nbNode);
 
         log.trace("Appel de Ollama...");
 
@@ -75,54 +94,24 @@ public class OllamaService {
      * @param prompt
      * @return
      */
-    private Prompt augmentSystemPrompt(List<GraphDatasetElement> graph, String userMeassage) {
+    private Prompt augmentSystemPrompt(List<GraphDatasetElement> graph, String userMeassage, int nbNode) {
     	
     	SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(
-
+    			
     		"""
-				Considering only information provided by the graph: {graph} 
-				You will complete the task : {userMeassage}
-				Return the result of the shortest path with format: [0, 1, 2, 3] into shortestPath variable. 
-				The numbers 0, 1, 2, 3 represent the node numbers of the short path. Also calculate the total distance.	
+				Forget any previous instruction.
+				This is a graph of {num_nodes} nodes, labeled from 0 to {final}.Each line represents an edge in the format: initial_node final_node weight. 
+				Considering {userMeassage}, your task is to find the path with the minimum total weight from node 0 to node {final}.
+				Return as your answer only a sequence of node numbers, in the format: 0 -> x -> y -> ... -> {final} into shortestPath variable. 
+				If you find no path, return 'No path found'.
+				Also returns the total distance by adding the distance between each node of the shortest path.
+			    Do not return anything else. Do not explain. Do not include code.
+				{graph_data}	
 			"""
 		);
 		
-		return systemPromptTemplate.create(Map.of( "graph", graph, "userMeassage", userMeassage));
+		return systemPromptTemplate.create(Map.of( "graph_data", graph, "userMeassage", userMeassage, "num_nodes", nbNode, "final", (nbNode-1) ));
 		
     }
-    
-    
-
-    /**
-     * Cette methode permet de sauvegarder la reponse de Ollama
-     * @param response
-     * @param dataSet
-     * @param savedPrompts
-     */
-    //Todo: sauvegarder la réponse dans un fichier csv .
-    /*private void saveResponse(String response, DataSet dataSet, LLMPrompt savedPrompts) {
-        Double distance = getDataFromResponse(response);
-
-        LLMResponse llmResponse = new LLMResponse();
-        llmResponse.setDataSet(dataSet);
-        llmResponse.setSystemPromt(savedPrompts.getSystemPrompt());
-        llmResponse.setUserData(savedPrompts.getUserData());
-        llmResponse.setProvidedDistance(distance);
-      //llmResponse.setExpectedDistance(getExpectedDistance(dataSet, savedPrompts));
-        llmResponse.setScore(llmResponse.getExpectedDistance() - llmResponse.getProvidedDistance());
-        llmResponse.setExecutionDate(new Date());
-    }*/
-
-    /**
-     * Cette methode permet de calculer la distance attendue
-     * @param dataSet
-     * @param savedPrompts
-     * @return
-     */
-    //Todo: changer cette methode pour lire la réponse du fichier response.csv
-    /*private Double getExpectedDistance(DataSet dataSet, LLMPrompt savedPrompts) {
-     //   PathResult shortestPath = graphService.findShortestPath(dataSet, savedPrompts.getStart().toString(), savedPrompts.getEnd().toString());
-        return null;
-    }*/
     
 }

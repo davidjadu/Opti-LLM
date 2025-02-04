@@ -1,7 +1,10 @@
 package com.example.springiapromptdemo.utils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,8 +16,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
+import com.example.springiapromptdemo.entities.FinalResult;
 import com.example.springiapromptdemo.entities.GraphDatasetElement;
 import com.example.springiapromptdemo.entities.PathResult;
 
@@ -22,6 +27,8 @@ public final class OllamaUtils {
 	
     // Expression régulière pour détecter les crochets et remplacer les virgules à l'intérieur
     private static final Pattern BRACKET_PATTERN = Pattern.compile("\\[(.*?)\\]");
+    private static final String DIRECTORY_PATH = "src/main/resources/output-data/"; 
+    private static final String CSV_OUTPUT_FILE_PATH = DIRECTORY_PATH + "LLMResponse.csv";
 	
 	private  OllamaUtils() {
 		throw new AssertionError("Cannot instantiate the Utils class");
@@ -31,7 +38,7 @@ public final class OllamaUtils {
     	
         List<PathResult> pathResults = new ArrayList<>();
         
-        try (InputStream inputStream = OllamaUtils.class.getClassLoader().getResourceAsStream("data/metadata.csv");
+        try (InputStream inputStream = OllamaUtils.class.getClassLoader().getResourceAsStream("input-data/metadata.csv");
         	BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
         	
         	// Lire tout le contenu du fichier et modifier les virgules dans les crochets
@@ -62,6 +69,7 @@ public final class OllamaUtils {
                 
                 String digistrapahString = record.get(4);
                 String distance = record.get(5);
+                String nbNode = record.get(1);
 
                 digistrapahString = digistrapahString.substring(1, digistrapahString.length());
                 String[] trim = digistrapahString.split(",");
@@ -78,7 +86,7 @@ public final class OllamaUtils {
                 if(!"-".equals(distance)) {
                 	pathResult.setTotalDistance(Double.parseDouble(distance));
                 }
-
+                pathResult.setNbNodes(Integer.parseInt(nbNode));
                pathResults.add(pathResult);
             }
         } catch (IOException e) {
@@ -112,7 +120,7 @@ public final class OllamaUtils {
     public static List<GraphDatasetElement> loadDataSet(String fileName) throws FileNotFoundException{
         List<GraphDatasetElement> graphDatasetElementList = new ArrayList<>();
 
-        InputStream inputStream = OllamaUtils.class.getClassLoader().getResourceAsStream("data/graphs/".concat(fileName).concat(".csv"));
+        InputStream inputStream = OllamaUtils.class.getClassLoader().getResourceAsStream("input-data/graphs/".concat(fileName).concat(".csv"));
         
         if (Objects.isNull(inputStream)) {
             throw new FileNotFoundException(String.format("Le fichier %s est introuvable.", fileName.concat(".csv")));
@@ -140,5 +148,38 @@ public final class OllamaUtils {
             throw new RuntimeException(e);
         }
         return graphDatasetElementList;
+    }
+    
+    
+    public static void saveResponse(List<FinalResult> resp){
+    	
+        File directory = new File(DIRECTORY_PATH);
+        if (!directory.exists()) {
+            directory.mkdirs(); 
+        }
+        
+    	 // Création d'un format CSV avec en-têtes
+        CSVFormat csvFormat = CSVFormat.Builder.create()
+                .setHeader("graph_id", "shortestPath", "totalDistance", "score") // Définition des en-têtes
+                .setSkipHeaderRecord(false) // Ne pas ignorer l'en-tête
+                .build();
+        
+        try (BufferedWriter writer = new BufferedWriter (new FileWriter(CSV_OUTPUT_FILE_PATH));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
+
+               // Écriture des données
+        	   for(FinalResult finalResult : resp) {
+        		   csvPrinter.printRecord(finalResult.getGraph_name(), 
+        				   				  finalResult.getShortestPath(), 
+        				   				  finalResult.getTotalDistance(), 
+        				   				  finalResult.getScore());
+        	   }
+        	   
+               csvPrinter.flush(); // Force l'écriture des données dans le fichier
+
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
+       
     }
 }

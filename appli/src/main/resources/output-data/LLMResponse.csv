@@ -1,0 +1,4 @@
+graph_id,shortestPath,totalDistance,score
+graph_12,0 -> 2 -> 4,121.0,1.0
+graph_13,0 -> 1 -> 2 -> 3 -> 4,184.0,-84.0
+graph_14,0 -> 1 -> 2 -> 4,110.0,-8.0

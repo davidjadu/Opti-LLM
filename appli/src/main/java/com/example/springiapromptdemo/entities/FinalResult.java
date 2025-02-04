@@ -1,7 +1,14 @@
 package com.example.springiapromptdemo.entities;
 
-public record FinalResult (String graph_name,
-						   String shortestPath, 
-						   double totalDistance,
-						   double expectedTotalDistance,
-						   double score) {}
+import lombok.Data;
+
+@Data
+public class FinalResult {
+	
+   String graph_name;
+   String ExpectedShortestPath;
+   String shortestPath;
+   double expectedTotalDistance;
+   double totalDistance;
+   double score;
+}
