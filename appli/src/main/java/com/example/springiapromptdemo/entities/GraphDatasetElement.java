@@ -14,7 +14,7 @@ public class GraphDatasetElement {
     private Long id;
     private String pointA;
     private String pointB;
-    private Float distance;
+    private Double distance;
 
     private String grapheName;
 

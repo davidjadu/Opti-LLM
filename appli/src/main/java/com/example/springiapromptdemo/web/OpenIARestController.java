@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.springiapromptdemo.entities.FinalResult;
-import com.example.springiapromptdemo.entities.LLMResponse;
 import com.example.springiapromptdemo.services.OllamaService;
 
 @RestController
@@ -21,8 +20,8 @@ public class OpenIARestController {
     OllamaService ollamaService;
 
     @GetMapping("/prompt")
-    public ResponseEntity<List<FinalResult>> callOllama(@RequestParam String userMeassage){
-    	List<FinalResult> res = this.ollamaService.initChat(userMeassage);
+    public ResponseEntity<List<FinalResult>> callOllama(@RequestParam String userMessage){
+    	List<FinalResult> res = this.ollamaService.initChat(userMessage);
         return ResponseEntity.ok(res);
     }
 
