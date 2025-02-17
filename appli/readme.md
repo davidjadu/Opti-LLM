@@ -1,12 +1,12 @@
 # SpringIAPromptDemo
 
 ## Description
-SpringIAPromptDemo est une application Maven permettant de résoudre le problème du voyageur sur des graphes de nœuds en utilisant l'API Ollama. L'application prend en entrée des fichiers CSV contenant les graphes et leurs métadonnées, envoie les données à l'API, et sauvegarde les résultats dans un fichier CSV.
+SpringIAPromptDemo est une application Maven permettant de résoudre le problème du voyageur de commerce sur des graphes de nœuds en utilisant Ollama. L'application prend en entrée des fichiers CSV contenant les graphes et leurs métadonnées, envoie les données au LLM, et sauvegarde les résultats dans un fichier CSV. On compare ensuite les résultats du LLM à ceux du fichiers métadata pour déterminer le score.
 
 ## Fonctionnalités
 - Lecture et traitement de fichiers CSV représentant des graphes.
 - Lecture des métadonnées des graphes à partir d'un fichier spécifique.
-- Communication avec l'API Ollama pour résoudre les chemins optimaux.
+- Communication avec Ollama pour trouver les chemins optimaux.
 - Sauvegarde des résultats dans un fichier CSV.
 - Exposition d'une API REST pour interagir avec l'application.
 
@@ -25,22 +25,31 @@ cd SpringIAPromptDemo
 L'application utilise des variables d'environnement pour définir les répertoires et fichiers de travail. Toutefois, des répertoires par défaut sont fournis dans le projet. Si vous ne souhaitez pas définir de nouveaux chemins, vous pouvez simplement placer vos fichiers dans ces répertoires par défaut.
 
 Exemple de configuration manuelle :
-```sh
+```sh linux
 export OLLAMA_HOST_URL=url_ollama
 export GRAPH_DIRECTORY=/chemin/vers/graphs/
 export METADATA_FILE=/chemin/vers/metadata.csv
 export OUTPUT_DIRECTORY=/chemin/vers/output/
 ```
 
+```cmd
+set OLLAMA_HOST_URL=url_ollama
+set GRAPH_DIRECTORY=/chemin/vers/graphs/
+set METADATA_FILE=/chemin/vers/metadata.csv
+set OUTPUT_DIRECTORY=/chemin/vers/output/
+```
+
+```powershell
+$env:OLLAMA_HOST_URL=url_ollama
+$env:GRAPH_DIRECTORY=/chemin/vers/graphs/
+$env:METADATA_FILE=/chemin/vers/metadata.csv
+$env:OUTPUT_DIRECTORY=/chemin/vers/output/
+```
+
 ### 3. Compilation et exécution
 ```sh
 mvn clean install
-java -jar target/SpringIAPromptDemo-0.0.1-SNAPSHOT.jar
-```
-
-#### Alternative : Lancer avec les variables d'environnement en une seule commande
-```sh
-INPUT_DIR=/chemin/vers/fichiers_graphes METADATA_FILE=/chemin/vers/metadata.csv OUTPUT_FILE=/chemin/vers/resultats.csv mvn spring-boot:run
+java -jar target/nom_application.jar
 ```
 
 ## Utilisation
