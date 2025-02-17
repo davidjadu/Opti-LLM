@@ -26,15 +26,15 @@ L'application utilise des variables d'environnement pour définir les répertoir
 
 Exemple de configuration manuelle :
 ```sh
-export INPUT_DIR=/chemin/vers/fichiers_graphes
-export METADATA_FILE=/chemin/vers/metadata.csv
-export OUTPUT_FILE=/chemin/vers/resultats.csv
+export GRAPH_DIRECTORY=/chemin/vers/input-data/graphs/
+export METADATA_FILE=/chemin/vers/input-data/metadata.csv
+export OUTPUT_DIRECTORY=/chemin/vers/output/
 ```
 
 ### 3. Compilation et exécution
 ```sh
 mvn clean install
-java -jar target/SpringIAPromptDemo.jar
+java -jar target/SpringIAPromptDemo-0.0.1-SNAPSHOT.jar
 ```
 
 #### Alternative : Lancer avec les variables d'environnement en une seule commande
