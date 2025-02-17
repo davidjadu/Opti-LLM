@@ -26,8 +26,8 @@ L'application utilise des variables d'environnement pour définir les répertoir
 
 Exemple de configuration manuelle :
 ```sh
-export GRAPH_DIRECTORY=/chemin/vers/input-data/graphs/
-export METADATA_FILE=/chemin/vers/input-data/metadata.csv
+export GRAPH_DIRECTORY=/chemin/vers/graphs/
+export METADATA_FILE=/chemin/vers/metadata.csv
 export OUTPUT_DIRECTORY=/chemin/vers/output/
 ```
 
