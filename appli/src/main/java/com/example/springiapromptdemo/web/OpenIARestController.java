@@ -1,5 +1,6 @@
 package com.example.springiapromptdemo.web;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ public class OpenIARestController {
     OllamaService ollamaService;
 
     @GetMapping("/prompt")
-    public ResponseEntity<List<FinalResult>> callOllama(@RequestParam String userMessage){
+    public ResponseEntity<List<FinalResult>> callOllama(@RequestParam String userMessage) throws IOException {
     	List<FinalResult> res = this.ollamaService.initChat(userMessage);
         return ResponseEntity.ok(res);
     }

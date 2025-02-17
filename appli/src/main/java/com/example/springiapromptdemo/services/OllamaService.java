@@ -1,6 +1,7 @@
 package com.example.springiapromptdemo.services;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class OllamaService {
         this.chatClient = chatClient.build();
     }
     
-    public List<FinalResult> initChat(String userMessage) {
+    public List<FinalResult> initChat(String userMessage) throws IOException {
 		
     	List<PathResult> pathResults = OllamaUtils.readMetadata();
     	List<FinalResult> resp = new ArrayList<>();
@@ -75,7 +76,7 @@ public class OllamaService {
         				
 						resp.add(finalResult);
 
-					} catch (FileNotFoundException e) {
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
                 }

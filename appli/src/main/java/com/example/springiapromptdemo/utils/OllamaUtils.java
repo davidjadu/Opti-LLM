@@ -1,14 +1,9 @@
 package com.example.springiapromptdemo.utils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,18 +43,24 @@ public final class OllamaUtils {
         OUTPUT_DIRECTORY_PATH = env.getProperty("output.file.directory");
         GRAPHS_INPUT_DIRECTORY_PATH = env.getProperty("input.graph.directory");
         INPUT_FILE_PATH = env.getProperty("input.file.path");
+        String URL = env.getProperty("spring.ai.ollama.base-url");
 
         log.info("=====> Output directory path: {}", OUTPUT_DIRECTORY_PATH);
         log.info("=====> Graph directory path: {}", GRAPHS_INPUT_DIRECTORY_PATH);
         log.info("=====> Metadata file path: {}", INPUT_FILE_PATH);
+        log.info("=====> URL: {}", URL);
     }
 	
-    public static List<PathResult> readMetadata(){
+    public static List<PathResult> readMetadata() throws IOException {
     	
         List<PathResult> pathResults = new ArrayList<>();
-        
-        try (InputStream inputStream = OllamaUtils.class.getClassLoader().getResourceAsStream(INPUT_FILE_PATH);
-        	BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+
+        InputStream is = getInputStream(INPUT_FILE_PATH);
+        InputStream inputStream = is == null
+                        ? OllamaUtils.class.getClassLoader().getResourceAsStream(INPUT_FILE_PATH)
+                        : is;
+
+        try ( BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
         	
         	// Lire tout le contenu du fichier et modifier les virgules dans les crochets
             StringBuilder content = new StringBuilder();
@@ -80,6 +81,7 @@ public final class OllamaUtils {
             Iterable<CSVRecord> records = csvFormat.parse(modifiedReader);
             
             for (CSVRecord record : records) {
+
                 String graphId = record.get(0).replace("\"", "");
                 
                 // Si c'est un header ignorer la ligne
@@ -137,15 +139,14 @@ public final class OllamaUtils {
         return result.toString();
     }
 
-    public static List<GraphDatasetElement> loadDataSet(String fileName) throws FileNotFoundException{
+    public static List<GraphDatasetElement> loadDataSet(String fileName) throws IOException {
         List<GraphDatasetElement> graphDatasetElementList = new ArrayList<>();
 
-        InputStream inputStream = OllamaUtils.class.getClassLoader().getResourceAsStream(GRAPHS_INPUT_DIRECTORY_PATH.concat(fileName).concat(".csv"));
-        
-        if (Objects.isNull(inputStream)) {
-            throw new FileNotFoundException(String.format("Le fichier %s est introuvable.", fileName.concat(".csv")));
-        }
-        
+        InputStream is = getInputStream(GRAPHS_INPUT_DIRECTORY_PATH.concat(fileName).concat(".csv"));
+        InputStream inputStream = is == null
+                ? OllamaUtils.class.getClassLoader().getResourceAsStream(INPUT_FILE_PATH)
+                : is;
+
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
 
             CSVFormat csvFormat = CSVFormat.newFormat(',').builder()
@@ -257,6 +258,14 @@ public final class OllamaUtils {
         return rawPath.replaceAll("[\\[\\]\"]", "")  // Supprime les crochets et guillemets
                 .replaceAll("\\s*-\\s*", " -> ") // Remplace les tirets entourés d'espaces par " -> "
                 .trim();
+    }
+
+    private static InputStream getInputStream(String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        if (Files.exists(path)) {
+            return Files.newInputStream(path);
+        }
+        throw new FileNotFoundException("Fichier introuvable : " + filePath);
     }
 
 }
