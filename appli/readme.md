@@ -27,6 +27,8 @@ L'application utilise des variables d'environnement pour définir les répertoir
 Exemple de configuration manuelle :
 ```sh linux
 export OLLAMA_HOST_URL=url_ollama
+export OLLAMA_PORT=ollama_port
+export OLLAMA_MODEL=ollama_model
 export GRAPH_DIRECTORY=/chemin/vers/graphs/
 export METADATA_FILE=/chemin/vers/metadata.csv
 export OUTPUT_DIRECTORY=/chemin/vers/output/
@@ -34,6 +36,8 @@ export OUTPUT_DIRECTORY=/chemin/vers/output/
 
 ```cmd
 set OLLAMA_HOST_URL=url_ollama
+set OLLAMA_PORT=ollama_port
+set OLLAMA_MODEL=ollama_model
 set GRAPH_DIRECTORY=/chemin/vers/graphs/
 set METADATA_FILE=/chemin/vers/metadata.csv
 set OUTPUT_DIRECTORY=/chemin/vers/output/
@@ -41,6 +45,8 @@ set OUTPUT_DIRECTORY=/chemin/vers/output/
 
 ```powershell
 $env:OLLAMA_HOST_URL=url_ollama
+$env:OLLAMA_PORT=ollama_port
+$env:OLLAMA_MODEL=ollama_model
 $env:GRAPH_DIRECTORY=/chemin/vers/graphs/
 $env:METADATA_FILE=/chemin/vers/metadata.csv
 $env:OUTPUT_DIRECTORY=/chemin/vers/output/
