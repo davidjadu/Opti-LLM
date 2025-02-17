@@ -26,6 +26,8 @@ L'application utilise des variables d'environnement pour définir les répertoir
 
 Exemple de configuration manuelle :
 ```sh linux
+sh linux
+
 export SERVER_PORT=server_port
 export OLLAMA_HOST_URL=url_ollama
 export OLLAMA_PORT=ollama_port
@@ -36,6 +38,8 @@ export OUTPUT_DIRECTORY=/chemin/vers/output/
 ```
 
 ```cmd
+cmd
+
 set SERVER_PORT=server_port
 set OLLAMA_HOST_URL=url_ollama
 set OLLAMA_PORT=ollama_port
@@ -46,6 +50,8 @@ set OUTPUT_DIRECTORY=/chemin/vers/output/
 ```
 
 ```powershell
+powershell
+
 $env:SERVER_PORT=server_port
 $env:OLLAMA_HOST_URL=url_ollama
 $env:OLLAMA_PORT=ollama_port
