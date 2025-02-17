@@ -26,6 +26,7 @@ L'application utilise des variables d'environnement pour définir les répertoir
 
 Exemple de configuration manuelle :
 ```sh
+export OLLAMA_HOST_URL=url_ollama
 export GRAPH_DIRECTORY=/chemin/vers/graphs/
 export METADATA_FILE=/chemin/vers/metadata.csv
 export OUTPUT_DIRECTORY=/chemin/vers/output/
