@@ -6,7 +6,6 @@ import java.util.List;
 
 @Data
 public class FinalResult {
-	
    String graph_name;
    String ExpectedShortestPath;
    String shortestPath;
@@ -14,4 +13,10 @@ public class FinalResult {
    Double expectedTotalDistance;
    Double totalDistance;
    Double score;
+
+   String ExpectedApproximateTSP;
+   String approximateTSP;
+   Double expectedTotalDistanceForAppTSP;
+   Double totalDistanceForAppTSP;
+   Double scoreForAppTSP;
 }

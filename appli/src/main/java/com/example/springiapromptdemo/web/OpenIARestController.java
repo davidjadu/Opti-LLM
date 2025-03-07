@@ -21,8 +21,8 @@ public class OpenIARestController {
     OllamaService ollamaService;
 
     @GetMapping("/prompt")
-    public ResponseEntity<List<FinalResult>> callOllama(@RequestParam String userMessage) throws IOException {
-    	List<FinalResult> res = this.ollamaService.initChat(userMessage);
+    public ResponseEntity<List<FinalResult>> callOllama() throws IOException {
+    	List<FinalResult> res = this.ollamaService.initChat();
         return ResponseEntity.ok(res);
     }
 

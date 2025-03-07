@@ -1,0 +1,4 @@
+your task is to find the path with the minimum total weight from node 0 to node %1$d.
+Return as your answer only a sequence of node numbers, in the format: 0 -> x -> y -> ... -> %1$d into shortestPath variable.
+If you find no path, return 'No path found'.
+Do not return anything else. Do not explain. Do not include code, explanations or comments

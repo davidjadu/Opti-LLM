@@ -1,0 +1,8 @@
+Forget any previous instruction.
+This is a graph with 5 nodes, labeled from 0 to 4.
+Each line represents an edge in the format: initial_node final_node weight. Your task is to find the
+path with the minimum total weight that starts at node 0, visits every node at least once, and then
+returns to node 0. Return as your answer only a sequence of node numbers
+in the format: 0 -> x -> y -> ... -> z -> 0. If you find no valid path, return 'No path found'.
+Do not return anything else. Do not explain. Do not include Python code.
+graph_data : Node1 : 3 => Node2 : 4 => weight => 96,000000 Node1 : 0 => Node2 : 2 => weight => 39,000000

@@ -9,5 +9,7 @@ public class PathResult {
     private List<String> shortestPath; // Liste des nœuds dans l'ordre du chemin
     private Double totalDistance; // Distance totale
     private String graph_name;
+    private List<String> approximateTSP;
+    private Double approximateTSPLength;
     int nbNodes;
 }

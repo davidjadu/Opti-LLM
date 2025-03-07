@@ -1,20 +1,20 @@
-graph_id;shortestPath;hallucinations;totalDistance;score
-graph_0;0 -> 2 -> 4;[2->4];;
-graph_1;0 -> 3 -> 4;[0->3];;
-graph_2;0 -> 1 -> 2 -> 3 -> 4;[0->1, 2->3, 3->4];;
-graph_3;0 -> 4;[0->4];;
-graph_4;0 -> 2 -> 4;[0->2];;
-graph_5;0 -> 1 -> 3 -> 4;[1->3, 3->4];;
-graph_6;0 -> 2;;33.0;
-graph_7;0 -> 2 -> 3 -> 4;[0->2, 3->4];;
-graph_8;0 -> 2 -> 3 -> 4;[0->2, 3->4];;
-graph_9;0 -> 3 -> 4;[0->3];;
-graph_10;0 -> 1 -> No path found;[1->No path found];;
-graph_11;0 -> 2 -> 3 -> 4;[0->2, 3->4];;
-graph_12;0 -> 2 -> 4;;127.0;-7.0
-graph_13;0 -> 1 -> 2 -> 3 -> 4;;268.0;0.0
-graph_14;0 -> 1 -> 2 -> 4;;118.0;0.0
-graph_15;0 -> 2 -> 4;[2->4];;
-graph_16;0 -> 1 -> 3 -> 4;;126.0;0.0
-graph_17;0 -> 1 -> 3 -> 4;[0->1];;
-graph_18;0 -> 1 -> 2 -> 4;[0->1, 2->4];;
+graph_id,shortestPath,totalDistance,score,approximateTSP,totalDistanceForAppTSP,scoreForAppTSP,hallucinations
+graph_0,0 -> 2 -> 4,,,No path found,0.0,,[2->4]
+graph_1,No path found,0.0,,No path found,0.0,,
+graph_2,No path found,0.0,,No path found,0.0,,
+graph_3,0 -> 1 -> 2 -> 3 -> 4,,,No path found,0.0,,"[0->1, 1->2]"
+graph_4,No path found,0.0,,No path found,0.0,,
+graph_5,0 -> 1 -> 2 -> 3 -> 4,,,No path found,0.0,,"[1->2, 3->4]"
+graph_6,No path found,0.0,,No path found,0.0,,
+graph_7,No path found,0.0,,No path found,0.0,,
+graph_8,No path found,0.0,,No path found,0.0,,
+graph_9,No path found,0.0,,No path found,0.0,,
+graph_10,0 -> 1 -> 2 -> 4,,,No path found,0.0,,[2->4]
+graph_11,0 -> 2 -> 3 -> 4,,,No path found,0.0,,"[0->2, 3->4]"
+graph_12,0 -> 1 -> 2 -> 4,,,0 -> 1 -> 2 -> 3 -> 4 -> 0,,,"[3->4, 4->0]"
+graph_13,0 -> 1 -> 2 -> 3 -> 4,,,0 -> 1 -> 2 -> 3 -> 4 -> 0,,,[4->0]
+graph_14,0 -> 1 -> 2 -> 4,,,0 -> 1 -> 2 -> 4 -> 3 -> 0,,,[3->0]
+graph_15,0 -> 1 -> 2 -> 3 -> 4,,,0 -> 1 -> 2 -> 3 -> 4 -> 0,,,[4->0]
+graph_16,0 -> 1 -> 2 -> 3 -> 4,,,0 -> 1 -> 3 -> 2 -> 4 -> 0,,,"[2->4, 4->0]"
+graph_17,0 -> 1 -> 3 -> 4,,,No path found,0.0,,[0->1]
+graph_18,0 -> 1 -> 4,,,No path found,0.0,,[0->1]
