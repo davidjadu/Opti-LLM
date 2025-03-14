@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.example.springiapromptdemo.entities.*;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -14,10 +15,6 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import com.example.springiapromptdemo.entities.FinalResult;
-import com.example.springiapromptdemo.entities.GraphDatasetElement;
-import com.example.springiapromptdemo.entities.LLMResponse;
-import com.example.springiapromptdemo.entities.PathResult;
 import com.example.springiapromptdemo.utils.OllamaUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +30,8 @@ public class OllamaService {
 
 	private static final String SYSTEM_MESSAGE_RESOURCE_FSP = "src/main/resources/few-shot-prompt/systemMessage.txt";
 	private static final String USER_MESSAGE_RESOURCE_FSP = "src/main/resources/few-shot-prompt/userMessage.txt";
+
+	private static final String LOG_FILE_DIRECTORY = "src/main/resources/logs/";
 
     public OllamaService(ChatClient.Builder chatClient)
     {
@@ -59,7 +58,7 @@ public class OllamaService {
 
 				graph = OllamaUtils.loadDataSet(pathResult.getGraph_name());
 
-				Map<String, LLMResponse> llmResponse = this.callOllama(graph, pathResult.getNbNodes());
+				Map<String, LLMResponse> llmResponse = this.callOllama(graph, pathResult);
 
 				FinalResult finalResult = computeDataWithLLMResponse(pathResult, llmResponse, graph);
 
@@ -139,8 +138,12 @@ public class OllamaService {
 			finalResult.setScore(null);
 			finalResult.setTotalDistanceForAppTSP(null);
 			finalResult.setScoreForAppTSP(null);
-			finalResult.setHallucinationPaths(hallucination.getSecond());
-		}
+            if (isZeroShotPromptResponse) {
+                finalResult.setHallucinationPaths(hallucination.getSecond());
+            } else {
+                finalResult.setHallucinationPathsForAppTSP(hallucination.getSecond());
+            }
+        }
 
 
 		if(isZeroShotPromptResponse && !hallucination.getFirst()) {
@@ -159,26 +162,49 @@ public class OllamaService {
 	/**
      * Cette methode permet d'appeler le LLM pour la tâche
      * @param graph : représente les données du graphe
-	 * @param nbNode : nombre de noeuds totals à atteindre
+	 * @param pathResult : représente la ligne lue dans le fichier metadata
      * @return Map<String, LLMResponse> : réponse du LLM en fonction du type de prompt
      */
-    private Map<String, LLMResponse> callOllama(List<GraphDatasetElement> graph, int nbNode) throws IOException {
+    private Map<String, LLMResponse> callOllama(List<GraphDatasetElement> graph, PathResult pathResult) throws IOException {
 		Map<String, LLMResponse> responses = new HashMap<>();
 
+		String logFilePathFS = new StringBuilder().append(LOG_FILE_DIRECTORY)
+												.append("/few-shot-logs/")
+												.append(pathResult.getGraph_name()).toString();
+
+		String logFilePathZS = new StringBuilder().append(LOG_FILE_DIRECTORY)
+												  .append("/zero-shot-logs/")
+												  .append(pathResult.getGraph_name()).toString();
+
+		CustomLogger customLoggerFS = new CustomLogger(logFilePathFS);
+		CustomLogger customLoggerZS = new CustomLogger(logFilePathZS);
+
         log.trace("Construction des prompts système et utilisateur...");
-        Prompt zeroShotPrompt = zeroShotPrompt(graph, nbNode);
-		Prompt fewShotPrompt = fewShotPrompt(graph, nbNode);
+        Prompt zeroShotPrompt = zeroShotPrompt(graph, pathResult.getNbNodes());
+		Prompt fewShotPrompt = fewShotPrompt(graph, pathResult.getNbNodes());
 
         log.trace("Appel de ollama avec ChatClient...");
 		LLMResponse zeroShotPromptResponse = chatClient.prompt(zeroShotPrompt)
-													   .advisors(new SimpleLoggerAdvisor())
-													   .call()
-													   .entity(LLMResponse.class);
+				   .advisors(
+						   new SimpleLoggerAdvisor(
+								   request -> customLoggerZS.log(request.userText()),
+								   response -> customLoggerZS.log(response.getResult().toString()),
+								   1
+						   )
+				   )
+				   .call()
+				   .entity(LLMResponse.class);
 
 		LLMResponse fewShotPromptResponse = chatClient.prompt(fewShotPrompt)
-													  .advisors(new SimpleLoggerAdvisor())
-													  .call()
-													  .entity(LLMResponse.class);
+				  .advisors(
+						  new SimpleLoggerAdvisor(
+								  request -> customLoggerFS.log(request.userText()),
+								  response -> customLoggerFS.log(response.getResult().toString()),
+								  1
+						  )
+				  )
+				  .call()
+				  .entity(LLMResponse.class);
 		responses.put("zeroShotPrompt", zeroShotPromptResponse);
 		responses.put("fewShotPrompt", fewShotPromptResponse);
 

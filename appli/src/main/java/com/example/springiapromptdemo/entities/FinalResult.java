@@ -16,6 +16,7 @@ public class FinalResult {
 
    String ExpectedApproximateTSP;
    String approximateTSP;
+   List<String> hallucinationPathsForAppTSP;
    Double expectedTotalDistanceForAppTSP;
    Double totalDistanceForAppTSP;
    Double scoreForAppTSP;

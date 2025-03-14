@@ -215,8 +215,8 @@ public final class OllamaUtils {
         
     	 // Création d'un format CSV avec en-têtes
         CSVFormat csvFormat = CSVFormat.Builder.create()
-                .setHeader("graph_id", "shortestPath", "totalDistance", "score",
-                           "approximateTSP", "totalDistanceForAppTSP", "scoreForAppTSP", "hallucinations") // Définition des en-têtes
+                .setHeader("graph_id", "shortestPath", "hallucinations", "totalDistance", "score",
+                           "approximateTSP", "hallucinationsForAppTSP", "totalDistanceForAppTSP", "scoreForAppTSP") // Définition des en-têtes
                 .setSkipHeaderRecord(false) // Ne pas ignorer l'en-tête
                 .build();
         
@@ -227,12 +227,13 @@ public final class OllamaUtils {
         	   for(FinalResult finalResult : resp) {
         		   csvPrinter.printRecord(finalResult.getGraph_name(), 
         				   				  finalResult.getShortestPath(),
+                                          finalResult.getHallucinationPaths(),
         				   				  finalResult.getTotalDistance(), 
         				   				  finalResult.getScore(),
                                           finalResult.getApproximateTSP(),
+                                          finalResult.getHallucinationPathsForAppTSP(),
                                           finalResult.getTotalDistanceForAppTSP(),
-                                          finalResult.getScoreForAppTSP(),
-                                          finalResult.getHallucinationPaths());
+                                          finalResult.getScoreForAppTSP());
         	   }
         	   
                csvPrinter.flush(); // Force l'écriture des données dans le fichier
